@@ -5,14 +5,13 @@ using _Zannat_Mirza__Lab3.Models;
 
 namespace _Zannat_Mirza__Lab3
 {
-    public class DynamoDBHelper
+    public class DynamoDBService
     {
         private readonly IAmazonDynamoDB _dynamoDbClient;
 
-        public DynamoDBHelper(IConfiguration configuration)
+        public DynamoDBService(Helper helper)
         {
-            var awsOptions = configuration.GetAWSOptions();
-            _dynamoDbClient = awsOptions.CreateServiceClient<IAmazonDynamoDB>();
+            _dynamoDbClient = helper.GetDynamoDbClient(); // Get DynamoDB client from Helper
         }
 
         // Method to get items from a DynamoDB table
@@ -60,23 +59,6 @@ namespace _Zannat_Mirza__Lab3
             return movies;
         }
 
-        //public async Task<List<Dictionary<string, AttributeValue>>> GetMoviesAsync(string email)
-        //{
-        //    var request = new ScanRequest
-        //    {
-        //        TableName = "MovieDB",
-        //        FilterExpression = "UserID = :email",
-        //        ExpressionAttributeValues = new Dictionary<string, AttributeValue>
-        //{
-        //    { ":email", new AttributeValue { S = email } }
-        //}
-        //    };
-
-        //    var response = await _dynamoDbClient.ScanAsync(request);
-        //    return response.Items;
-        //}
-
-
 
         // Method to insert data into DynamoDB table
         public async Task AddMovieAsync(string email, string movieId, string title, string genre)
@@ -86,7 +68,7 @@ namespace _Zannat_Mirza__Lab3
                 TableName = "MovieDB",
                 Item = new Dictionary<string, AttributeValue>
         {
-            { "UserID", new AttributeValue { S = email } }, // Store email as UserID
+            { "UserID", new AttributeValue { S = email } }, 
             { "MovieID", new AttributeValue { S = movieId } },
             { "Title", new AttributeValue { S = title } },
             { "Genre", new AttributeValue { S = genre } }

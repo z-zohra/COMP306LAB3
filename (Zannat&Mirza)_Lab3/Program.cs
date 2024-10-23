@@ -10,8 +10,11 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Register DynamoDBHelper
-builder.Services.AddSingleton<DynamoDBHelper>();
+// Register the Helper class for DynamoDB and S3 connections
+builder.Services.AddSingleton<Helper>();
+
+// Register DynamoDBService with dependency on the Helper class
+builder.Services.AddScoped<DynamoDBService>(); // Scoped makes it per-request, change to Singleton if needed
 
 // Configure AWS service with credentials from appsettings.json
 builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions("AWS"));

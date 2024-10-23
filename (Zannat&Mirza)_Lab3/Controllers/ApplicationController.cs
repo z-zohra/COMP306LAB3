@@ -10,9 +10,9 @@ namespace _Zannat_Mirza__Lab3.Controllers
     public class ApplicationController : Controller
     {
         private readonly string connectionString;
-        private readonly DynamoDBHelper _dynamoDbHelper;
+        private readonly DynamoDBService _dynamoDbHelper;
 
-        public ApplicationController(IConfiguration configuration, DynamoDBHelper dynamoDbHelper)
+        public ApplicationController(IConfiguration configuration, DynamoDBService dynamoDbHelper)
         {
             connectionString = configuration.GetConnectionString("DefaultConnection");
             _dynamoDbHelper = dynamoDbHelper;
