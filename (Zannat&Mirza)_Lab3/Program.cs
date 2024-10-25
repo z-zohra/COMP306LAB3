@@ -16,6 +16,10 @@ builder.Services.AddSingleton<Helper>();
 // Register DynamoDBService with dependency on the Helper class
 builder.Services.AddScoped<DynamoDBService>(); // Scoped makes it per-request, change to Singleton if needed
 
+// Register S3Service
+builder.Services.AddSingleton<S3Service>();
+
+
 // Configure AWS service with credentials from appsettings.json
 builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions("AWS"));
 var app = builder.Build();

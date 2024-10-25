@@ -2,57 +2,33 @@
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
 
-@model List<_Zannat_Mirza__Lab3.Models.Movie>
+@model List<string>
+@* @model List<_Zannat_Mirza__Lab3.Models.Movie> *@
 <h2>Movie List</h2>
 @{
-    @if (Model != null && Model.Count > 0)
-    {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Movie ID</th>
-                <th>Title</th>
-                <th>Genre</th>
-                <th>Average Rating</th>
-                <th>Release Date</th>
-                <th>Directors</th>
-                <th>Comments</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var movie in Model)
-            {
-                <tr>
-                    <td>@movie.MovieID</td>
-                    <td>@movie.Title</td>
-                    <td>@movie.Genre</td>
-                    <td>@movie.AverageRating</td>
-                    <td>@movie.ReleaseDate</td>
-                    <td>
-                        @foreach (var director in movie.Directors)
-                        {
-                            <p>@director</p>
-                        }
-                    </td>
-                    <td>
-                        @foreach (var comment in movie.Comments)
-                        {
-                            <p><strong>User:</strong> @comment.Key</p>
-                            <p><strong>Comment:</strong> @comment.Value.Value</p>
-                            <p><strong>Rating:</strong> @comment.Value.Rating</p>
-                            <p><strong>Timestamp:</strong> @comment.Value.Timestamp</p>
-                        }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-    }
+    <!DOCTYPE html>
+<html>
+<head>
+    <title>Movies</title>
+</head>
+<body>
+        <h2>All Movies</h2>
 
-    else
-    {
-        <p>No movies found.</p>
-    }
+        @foreach (var movieUrl in Model)
+        {
+            <div class="movie">
+                <h2>Movie</h2>
+
+                <!-- Video player for each S3 movie -->
+                <video width="320" height="240" controls>
+                    <source src="@movieUrl" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+            <hr />
+        }
+</body>
+</html>
 }
 
 

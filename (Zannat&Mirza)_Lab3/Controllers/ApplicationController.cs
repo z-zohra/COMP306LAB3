@@ -11,11 +11,13 @@ namespace _Zannat_Mirza__Lab3.Controllers
     {
         private readonly string connectionString;
         private readonly DynamoDBService _dynamoDbHelper;
+        private readonly S3Service _s3Service;
 
-        public ApplicationController(IConfiguration configuration, DynamoDBService dynamoDbHelper)
+        public ApplicationController(IConfiguration configuration, DynamoDBService dynamoDbHelper, S3Service s3Service)
         {
             connectionString = configuration.GetConnectionString("DefaultConnection");
             _dynamoDbHelper = dynamoDbHelper;
+            _s3Service = s3Service;
         }
 
         // Registration GET Action
@@ -24,7 +26,7 @@ namespace _Zannat_Mirza__Lab3.Controllers
         {
             return View("~/Views/Home/Register.cshtml");
         }
-        
+
         // Registration POST Action
         [HttpPost]
         public IActionResult Register(RegisterViewModel model)
@@ -38,7 +40,7 @@ namespace _Zannat_Mirza__Lab3.Controllers
                     SqlCommand cmd = new SqlCommand(query, con);
                     cmd.Parameters.AddWithValue("@FullName", model.FullName);
                     cmd.Parameters.AddWithValue("@Email", model.Email);
-                    cmd.Parameters.AddWithValue("@Password", model.Password); 
+                    cmd.Parameters.AddWithValue("@Password", model.Password);
                     cmd.ExecuteNonQuery();
                 }
 
@@ -54,7 +56,7 @@ namespace _Zannat_Mirza__Lab3.Controllers
         {
             return View("~/Views/Home/Login.cshtml");
         }
-      
+
         // Login Action
         [HttpPost]
         public IActionResult Login(LoginViewModel model)
@@ -68,7 +70,7 @@ namespace _Zannat_Mirza__Lab3.Controllers
                     SqlCommand cmd = new SqlCommand(query, con);
                     cmd.Parameters.AddWithValue("@Email", model.Email);
                     cmd.Parameters.AddWithValue("@Password", model.Password);
-                    //int count = (int)cmd.ExecuteScalar();
+
 
                     //if (count == 1)
                     var email = cmd.ExecuteScalar()?.ToString();
@@ -76,7 +78,7 @@ namespace _Zannat_Mirza__Lab3.Controllers
                     if (!string.IsNullOrEmpty(email))
                     {
                         // Successful login 
-                        return RedirectToAction("DisplayUserMovies", new { email = email });
+                        return RedirectToAction("Home");
 
                     }
                     else
@@ -89,22 +91,31 @@ namespace _Zannat_Mirza__Lab3.Controllers
             return View("~/Views/Home/Login.cshtml", model);
         }
         [HttpGet]
-        public IActionResult Home()
+        public async Task<IActionResult> Home()
         {
-            return View("~/Views/Home/Home.cshtml");
-        }
+            // List all movie files from the S3 bucket
+            var movieKeys = await _s3Service.ListMoviesAsync("movie4lab3");
 
-        public IActionResult DisplayUserMovies(string email)
-        {
-            var movies = _dynamoDbHelper.GetMoviesAsync(email).Result;
-            return View("~/Views/Home/Home.cshtml", movies);
-        }
-        //public IActionResult DynamoDBConnection()
-        //{
-        //    var movies = _dynamoDbHelper.GetMoviesAsync().Result; // List movies from DynamoDB
-        //    // Pass movies to the view for display
-        //    return View(movies);
-        //}
+            // Generate pre-signed URLs for each movie key
+            var movieUrls = movieKeys.Select(key => _s3Service.GeneratePreSignedUrl("movie4lab3", key)).ToList();
 
+            // Fetch movie metadata from DynamoDB 
+            var moviesMetadata = await _dynamoDbHelper.GetMoviesAsync();
+
+            // Combine the S3 movie keys and metadata 
+            var movies = moviesMetadata.Select(movie => new Movie
+            {
+                Title = movie.Title,
+                Genre = movie.Genre,
+                ReleaseDate = movie.ReleaseDate,
+                MovieID = movieKeys.FirstOrDefault(key => key.Contains(movie.MovieID)) ?? movie.MovieID, // Fallback if no match
+                //PreSignedUrl = _s3Service.GeneratePreSignedUrl("movie4lab3", movieKeys.FirstOrDefault(key => key.Contains(movie.MovieID)))
+             
+            }).ToList();
+
+            return View("~/Views/Home/Home.cshtml", movieUrls);  // Pass the movies to the view
+
+        }
     }
+
 }

@@ -2,30 +2,28 @@
 using Amazon.DynamoDBv2;
 using Microsoft.Extensions.Configuration;
 using _Zannat_Mirza__Lab3.Models;
+using Amazon.S3;
 
 namespace _Zannat_Mirza__Lab3
 {
     public class DynamoDBService
     {
         private readonly IAmazonDynamoDB _dynamoDbClient;
+        private readonly IAmazonS3 _s3Client;
 
         public DynamoDBService(Helper helper)
         {
             _dynamoDbClient = helper.GetDynamoDbClient(); // Get DynamoDB client from Helper
+            _s3Client = helper.GetS3Client();
         }
 
         // Method to get items from a DynamoDB table
 
-        public async Task<List<Movie>> GetMoviesAsync(string email)
+        public async Task<List<Movie>> GetMoviesAsync()
         {
             var request = new ScanRequest
             {
-                TableName = "MovieDB",
-                FilterExpression = "UserID = :email",
-                ExpressionAttributeValues = new Dictionary<string, AttributeValue>
-        {
-            { ":email", new AttributeValue { S = email } }
-        }
+                TableName = "MovieDB"
             };
 
             var response = await _dynamoDbClient.ScanAsync(request);
@@ -35,30 +33,12 @@ namespace _Zannat_Mirza__Lab3
                 MovieID = item["MovieID"].S,
                 Title = item["Title"].S,
                 Genre = item["Genre"].S,
-                AverageRating = item.ContainsKey("AverageRating") ? float.Parse(item["AverageRating"].N) : 0,
-                ReleaseDate = item.ContainsKey("ReleaseDate") ? DateTime.Parse(item["ReleaseDate"].S) : (DateTime?)null,
-                Directors = item.ContainsKey("Directors") ? item["Directors"].L.Select(d => d.S).ToList() : new List<string>(),
-                Comments = item.ContainsKey("Comments") ? item["Comments"].M.ToDictionary(
-                    commentKey => commentKey.Key, // UID003, UID004
-                    commentValue => new Comment
-                    {
-                        Value = commentValue.Value.M["Comment"].S,
-                        Rating = float.Parse(commentValue.Value.M["Rating"].N),
-                        Timestamp = DateTime.Parse(commentValue.Value.M["Timestamp"].S)
-                    }
-                ) : new Dictionary<string, Comment>(),
-                Metadata = item.ContainsKey("Metadata") ? new Metadata
-                {
-                    Country = item["Metadata"].M["Country"].S,
-                    Duration = int.Parse(item["Metadata"].M["Duration"].N),
-                    Language = item["Metadata"].M["Language"].S
-                } : null,
-                RatingCount = item.ContainsKey("RatingCount") ? int.Parse(item["RatingCount"].N) : 0
+                ReleaseDate = item.ContainsKey("ReleaseDate") ? DateTime.Parse(item["ReleaseDate"].S) : (DateTime?)null // Handle optional ReleaseDate
+
             }).ToList();
 
             return movies;
         }
-
 
         // Method to insert data into DynamoDB table
         public async Task AddMovieAsync(string email, string movieId, string title, string genre)
