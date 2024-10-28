@@ -97,7 +97,7 @@ namespace _Zannat_Mirza__Lab3.Controllers
             var movieKeys = await _s3Service.ListMoviesAsync("movie4lab3");
 
             // Generate pre-signed URLs for each movie key
-            var movieUrls = movieKeys.Select(key => _s3Service.GeneratePreSignedUrl("movie4lab3", key)).ToList();
+           var movieUrls = movieKeys.Select(key => _s3Service.GeneratePreSignedUrl("movie4lab3", key)).ToList();
 
             // Fetch movie metadata from DynamoDB 
             var moviesMetadata = await _dynamoDbHelper.GetMoviesAsync();
@@ -108,12 +108,13 @@ namespace _Zannat_Mirza__Lab3.Controllers
                 Title = movie.Title,
                 Genre = movie.Genre,
                 ReleaseDate = movie.ReleaseDate,
-                MovieID = movieKeys.FirstOrDefault(key => key.Contains(movie.MovieID)) ?? movie.MovieID, // Fallback if no match
-                //PreSignedUrl = _s3Service.GeneratePreSignedUrl("movie4lab3", movieKeys.FirstOrDefault(key => key.Contains(movie.MovieID)))
-             
+                MovieID = movie.MovieID,
+                PreSignedUrl = _s3Service.GeneratePreSignedUrl("movie4lab3", movieKeys.FirstOrDefault(key => key.Contains(movie.MovieID)) ?? movie.MovieID)
+ 
             }).ToList();
+            
 
-            return View("~/Views/Home/Home.cshtml", movieUrls);  // Pass the movies to the view
+            return View("~/Views/Home/Home.cshtml", movies);  // Pass the movies to the view
 
         }
     }

@@ -2,33 +2,32 @@
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
 
-@model List<string>
-@* @model List<_Zannat_Mirza__Lab3.Models.Movie> *@
-<h2>Movie List</h2>
-@{
-    <!DOCTYPE html>
+@model List<_Zannat_Mirza__Lab3.Models.Movie>
+
+<!DOCTYPE html>
 <html>
 <head>
     <title>Movies</title>
 </head>
 <body>
-        <h2>All Movies</h2>
+    <h2>All Movies</h2>
 
-        @foreach (var movieUrl in Model)
-        {
-            <div class="movie">
-                <h2>Movie</h2>
+    @foreach (var movie in Model)
+    {
+        <div class="movie">
+            <h2>@movie.Title</h2>
+            <p>Genre: @movie.Genre</p>
+            <p>Release Date: @movie.ReleaseDate</p>
 
-                <!-- Video player for each S3 movie -->
-                <video width="320" height="240" controls>
-                    <source src="@movieUrl" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-            </div>
-            <hr />
-        }
+            <!-- Video player for each S3 movie -->
+            <video width="320" height="240" controls>
+                <source src="@movie.PreSignedUrl" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+        <hr />
+    }
 </body>
 </html>
-}
 
 
