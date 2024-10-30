@@ -1,5 +1,6 @@
 ﻿using Amazon.S3;
 using Amazon.S3.Model;
+using Azure;
 
 namespace _Zannat_Mirza__Lab3
 {
@@ -28,8 +29,8 @@ namespace _Zannat_Mirza__Lab3
 
                 foreach (var s3Object in response.S3Objects)
                 {
-                    // Add the key of each object (movie file) to the list
-                    if (s3Object.Key.EndsWith(".mp4")) // Assuming all movies are .mp4 files
+                    // Add the key of each object i.e movie file to the list wihc ends with .mp4
+                    if (s3Object.Key.EndsWith(".mp4")) 
                     {
                         movieKeys.Add(s3Object.Key);
                     }
@@ -57,7 +58,7 @@ namespace _Zannat_Mirza__Lab3
 
 
         // boilerplate code 
-        public async Task UploadMovieAsync(string bucketName, string key, string filePath)
+        public async Task UploadMovieAsyncS3(string bucketName, string key, string filePath)
         {
             var putRequest = new PutObjectRequest
             {
@@ -69,7 +70,7 @@ namespace _Zannat_Mirza__Lab3
             await _s3Client.PutObjectAsync(putRequest);
         }
 
-        public async Task DeleteMovieAsync(string bucketName, string key)
+        public async Task DeleteMovieAsyncS3(string bucketName, string key)
         {
             var deleteRequest = new DeleteObjectRequest
             {
@@ -77,7 +78,11 @@ namespace _Zannat_Mirza__Lab3
                 Key = key
             };
 
-            await _s3Client.DeleteObjectAsync(deleteRequest);
+            var response = await _s3Client.DeleteObjectAsync(deleteRequest);
+            if (response.HttpStatusCode != System.Net.HttpStatusCode.NoContent)
+            {
+                throw new Exception("Failed to delete the object from S3.");
+            }
         }
 
     }

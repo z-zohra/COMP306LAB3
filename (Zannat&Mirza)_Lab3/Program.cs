@@ -22,6 +22,18 @@ builder.Services.AddSingleton<S3Service>();
 
 // Configure AWS service with credentials from appsettings.json
 builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions("AWS"));
+
+
+// Add session services
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session timeout as needed
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -32,10 +44,15 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+// Enable session middleware
+app.UseSession();
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+
 
 app.UseAuthorization();
 
