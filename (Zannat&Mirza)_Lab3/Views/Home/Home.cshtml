@@ -1,65 +1,163 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-
-@model List<_Zannat_Mirza__Lab3.Models.Movie>
+﻿@model List<_Zannat_Mirza__Lab3.Models.Movie>
 
 <!DOCTYPE html>
 <html>
 <head>
     <title>Movies</title>
+    <link rel="stylesheet" href="StyleSheet.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h2 {
+            color: #4A90E2;
+            text-align: center;
+            font-size: 28px;
+            margin-bottom: 30px;
+        }
+
+        .movie-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .movie {
+            background: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+            .movie:hover {
+                transform: translateY(-5px);
+            }
+
+        .movie-title {
+            color: #333;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .movie-genre, .movie-release, .movie-rating {
+            color: #666;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+
+        video {
+            width: 100%;
+            max-height: 150px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button {
+            width: 45%;
+            padding: 8px;
+            background-color: #4A90E2;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 8px 5px;
+            transition: background-color 0.3s;
+        }
+
+            button:hover {
+                background-color: #357ABD;
+            }
+
+        .upload-section {
+            text-align: center;
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+            .upload-section p {
+                font-size: 16px;
+                color: #333;
+            }
+    </style>
 </head>
 <body>
-    <h2>All Movies</h2>
-    <div>
-        <form asp-action="FilterMovies" method="get">
-            <div>
-                <label for="genre">Genre:</label>
-                <select id="genre" name="genre">
-                    <option value="">All</option>
-                    <option value="Action">Action</option>
-                    <option value="Sci-Fi">Sci-Fi</option>
-                    <option value="Crime">Crime</option>
-                
-                </select>
-            </div>
-            <div>
-                <label for="minRating">Minimum Rating:</label>
-                <input type="number" id="minRating" name="minRating" min="0" max="10" step="0.1">
-            </div>
+    <div class="container">
+        <h2>Movies</h2>
+
+        <!-- Filter form -->
+        <form asp-action="FilterMovies" method="get" style="text-align: center; margin-bottom: 20px;">
+            <label for="genre">Genre:</label>
+            <select id="genre" name="genre">
+                <option value="">All</option>
+                <option value="Action">Action</option>
+                <option value="Sci-Fi">Sci-Fi</option>
+                <option value="Crime">Crime</option>
+            </select>
+
+            <label for="minRating">Minimum Rating:</label>
+            <input type="number" id="minRating" name="minRating" min="0" max="10" step="0.1">
+
             <button type="submit">Filter</button>
         </form>
+
+        <div class="movie-container">
+            @foreach (var movie in Model)
+            {
+                <div class="movie">
+                    <h3 class="movie-title">@movie.Title</h3>
+                    <p class="movie-genre">Genre: @movie.Genre</p>
+                    <p class="movie-release">Release Date: @movie.ReleaseDate</p>
+                    <p class="movie-rating">Rating: @movie.AverageRating</p>
+
+                    <!-- Video preview (small) with click-to-open in new tab functionality -->
+                    <video controls onclick="window.open('@movie.PreSignedUrl', '_blank', 'width=800,height=600')">
+                        <source src="@movie.PreSignedUrl" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+
+                    <div>
+                        <button>Edit</button>
+                        <form asp-action="DeleteMovie" method="post" style="display:inline;">
+                            <input type="hidden" name="movieId" value="@movie.MovieID" />
+                            <button type="submit">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Contribution/Upload section -->
+        <div class="upload-section">
+            <p>Contribute to our website by uploading the latest movies</p>
+            <button>Upload</button>
+        </div>
     </div>
-    <div class="movie-container">
-        @foreach (var movie in Model)
-        {
-            <div class="movie">
-                <h3 class="movie-title">@movie.Title</h3>
-                <p class="movie-genre">Genre: @movie.Genre</p>
-                <p class="movie-release">Release Date: @movie.ReleaseDate</p>
-                <p class="movie-rating">Rating: @movie.AverageRating</p>
 
-                <video controls>
-                    <source src="@movie.PreSignedUrl" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-
-                <button class="btn">Edit </button>
-                <!-- Delete button form -->
-                <form asp-action="DeleteMovie" method="post" style="display:inline;">
-                    <input type="hidden" name="movieId" value="@movie.MovieID" />
-                    <button type="submit" class="btn">Delete</button>
-                </form>
-               
-            </div>
+    <script>
+        function openInNewWindow(url, videoId) {
+            // Open the video in a new window
+            window.open(url, '_blank', 'width=800,height=600');
+            // Pause the video on the homepage
+            document.getElementById(videoId).pause();
         }
-        <div>
-            <p>
-                Contribute to our website by uploading lastest movies<button class="btn">Upload </button>
-                </p>
-            </div>
-        
-    </div>
+    </script>
 </body>
 </html>
 

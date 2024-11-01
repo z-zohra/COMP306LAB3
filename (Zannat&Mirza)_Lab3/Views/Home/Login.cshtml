@@ -1,24 +1,103 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-    
-*@
-@model _Zannat_Mirza__Lab3.Models.LoginViewModel
+﻿@model _Zannat_Mirza__Lab3.Models.LoginViewModel
 
-@{
-    <form asp-action="Login" method="post">
-        <div>
+<!DOCTYPE html>
+<html>
+<head>
+    
+   @* <link rel="stylesheet" href="StyleSheet.css" /> *@
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #4A90E2;
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="email"],
+        select {
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4A90E2;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+            button:hover {
+                background-color: #357ABD;
+            }
+
+        .message {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+            .message a {
+                color: #4A90E2;
+                text-decoration: none;
+                font-weight: bold;
+            }
+
+                .message a:hover {
+                    text-decoration: underline;
+                }
+
+    </style>
+
+</head>
+<body>
+    
+    <div class="container">
+        <h2>Login</h2>
+        <form asp-action="Login" method="post">
             <label for="Email">Email</label>
             <input type="text" id="Email" name="Email" required />
-        </div>
-        <div>
+
             <label for="Password">Password</label>
             <input type="password" id="Password" name="Password" required />
-        </div>
-        <div>
+
             <button type="submit">Login</button>
+        </form>
+        <div class="message">
+            <p>Don't have an account? <a asp-action="Register" asp-controller="Application">Register here</a></p>
         </div>
-        <div>
-            <p>Don't have an account? <a asp-action="Register" asp-controller="Application">Register here</a> </p>
-        </div>
-    </form>
-}
+    </div>
+
+</body>
+</html>

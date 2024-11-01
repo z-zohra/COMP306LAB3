@@ -107,6 +107,7 @@ namespace _Zannat_Mirza__Lab3.Controllers
                 Genre = movie.Genre,
                 ReleaseDate = movie.ReleaseDate,
                 MovieID = movie.MovieID,
+                AverageRating = movie.AverageRating,
                 PreSignedUrl = movieUrls.FirstOrDefault(url => url.Contains(movie.MovieID)) // Map URL to each movie based on MovieID
             }).ToList();
 
