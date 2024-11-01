@@ -98,23 +98,27 @@ namespace _Zannat_Mirza__Lab3
 
 
         // Function to List Movies by Rating using RatingIndex
+       
         public async Task<List<Movie>> ListMoviesByRating(float minRating)
         {
-            var request = new QueryRequest
+            var request = new ScanRequest
             {
                 TableName = "MovieDB",
                 IndexName = "RatingIndex",
-                KeyConditionExpression = "AverageRating >= :minRating",
-                ExpressionAttributeValues = new Dictionary<string, AttributeValue> {
+                FilterExpression = "AverageRating >= :minRating",
+                ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+        {
             { ":minRating", new AttributeValue { N = minRating.ToString() } }
         }
             };
 
-            var response = await _dynamoDbClient.QueryAsync(request);
+            var response = await _dynamoDbClient.ScanAsync(request);
             return response.Items.Select(MapToMovie).ToList();
         }
 
+
         //Function to List Movies by Genre using GenreIndex
+        
         public async Task<List<Movie>> ListMoviesByGenre(string genre)
         {
             var request = new QueryRequest
@@ -122,7 +126,8 @@ namespace _Zannat_Mirza__Lab3
                 TableName = "MovieDB",
                 IndexName = "GenreIndex",
                 KeyConditionExpression = "Genre = :genre",
-                ExpressionAttributeValues = new Dictionary<string, AttributeValue> {
+                ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+        {
             { ":genre", new AttributeValue { S = genre } }
         }
             };

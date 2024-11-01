@@ -113,37 +113,45 @@ namespace _Zannat_Mirza__Lab3.Controllers
             // Pass the list of Movie objects (with metadata and URLs) to the view
             return View("~/Views/Home/Home.cshtml", movies);
         }
-
+        // Filter Movie 
         public async Task<IActionResult> FilterMovies(string genre, float? minRating)
         {
             List<Movie> movies;
 
             if (!string.IsNullOrEmpty(genre) && minRating.HasValue)
             {
-                // Filter by both genre and rating
                 movies = (await _dynamoDbHelper.ListMoviesByGenre(genre))
                             .Where(m => m.AverageRating >= minRating)
                             .ToList();
             }
             else if (!string.IsNullOrEmpty(genre))
             {
-                // Filter only by genre
                 movies = await _dynamoDbHelper.ListMoviesByGenre(genre);
             }
             else if (minRating.HasValue)
             {
-                // Filter only by rating
                 movies = await _dynamoDbHelper.ListMoviesByRating(minRating.Value);
             }
             else
             {
-                // No filter applied, return all movies
                 movies = await _dynamoDbHelper.GetMoviesAsync();
             }
 
-            // Pass filtered movies list to the view
-            return View("Home", movies);
+            // Fetch movie keys from S3 and regenerate pre-signed URLs
+            var movieKeys = await _s3Service.ListMoviesAsync("movie4lab3");
+            foreach (var movie in movies)
+            {
+                // Find the correct S3 key that matches the MovieID
+                var matchedKey = movieKeys.FirstOrDefault(key => key.Contains(movie.MovieID));
+                movie.PreSignedUrl = matchedKey != null
+                    ? _s3Service.GeneratePreSignedUrl("movie4lab3", matchedKey)
+                    : null; // Set URL to null if no matching key found
+            }
+
+            return View("~/Views/Home/Home.cshtml", movies);
         }
+
+
 
 
     }
