@@ -145,8 +145,33 @@
 
         <!-- Contribution/Upload section -->
         <div class="upload-section">
-            <p>Contribute to our website by uploading the latest movies</p>
-            <button>Upload</button>
+             <p>Contribute to our website by uploading the latest movies</p>
+            <form asp-action="AddMovie" method="post" enctype="multipart/form-data">
+                
+                <div>
+                    <label for="title">Title:</label>
+                    <input type="text" id="title" name="Title" required />
+                </div>
+                <div>
+                    <label for="genre">Genre:</label>
+                    <input type="text" id="genre" name="Genre" required />
+                </div>
+                <div>
+                    <label for="rating">Rating:</label>
+                    <input type="number" id="rating" name="AverageRating" min="0" max="10" step="0.1" required />
+                </div>
+                <div>
+                    <label for="releaseDate">Release Date:</label>
+                    <input type="date" id="releaseDate" name="ReleaseDate" />
+                </div>
+                <div>
+                    <label for="file">Movie File:</label>
+                    <input type="file" id="file" name="File" required />
+                </div>
+                <button type="submit">Upload</button>
+            </form>
+              
+        </div>
         </div>
     </div>
 
