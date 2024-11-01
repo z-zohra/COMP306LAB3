@@ -4,7 +4,6 @@ using Amazon.DynamoDBv2.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 
-
 namespace _Zannat_Mirza__Lab3.Controllers
 {
     public class ApplicationController : Controller
@@ -13,7 +12,6 @@ namespace _Zannat_Mirza__Lab3.Controllers
         private readonly DynamoDBService _dynamoDbHelper;
         private readonly S3Service _s3Service;
 
-        // Initialize helper classes and configure connection string 
         public ApplicationController(IConfiguration configuration, DynamoDBService dynamoDbHelper, S3Service s3Service)
         {
             connectionString = configuration.GetConnectionString("DefaultConnection");
@@ -21,14 +19,14 @@ namespace _Zannat_Mirza__Lab3.Controllers
             _s3Service = s3Service;
         }
 
-        // Register GET Action
+        // Registration GET Action
         [HttpGet]
         public IActionResult Register()
         {
             return View("~/Views/Home/Register.cshtml");
         }
 
-        // Register POST Action
+        // Registration POST Action
         [HttpPost]
         public IActionResult Register(RegisterViewModel model)
         {
@@ -72,17 +70,13 @@ namespace _Zannat_Mirza__Lab3.Controllers
                     cmd.Parameters.AddWithValue("@Email", model.Email);
                     cmd.Parameters.AddWithValue("@Password", model.Password);
 
+                    var count = Convert.ToInt32(cmd.ExecuteScalar());
 
-                    //if (count == 1)
-                    var email = cmd.ExecuteScalar()?.ToString();
-
-                    if (!string.IsNullOrEmpty(email))
+                    if (count == 1)
                     {
-                        // Set the session with the user's email
-                        HttpContext.Session.SetString("Email", model.Email); // Store the email in session
+                        // Successful login
                         return RedirectToAction("Home");
                     }
-
                     else
                     {
                         ModelState.AddModelError("", "Invalid login attempt.");
@@ -92,7 +86,8 @@ namespace _Zannat_Mirza__Lab3.Controllers
 
             return View("~/Views/Home/Login.cshtml", model);
         }
-        // Home GET Action
+
+        // Home Action
         [HttpGet]
         public async Task<IActionResult> Home()
         {
@@ -100,88 +95,57 @@ namespace _Zannat_Mirza__Lab3.Controllers
             var movieKeys = await _s3Service.ListMoviesAsync("movie4lab3");
 
             // Generate pre-signed URLs for each movie key
-           var movieUrls = movieKeys.Select(key => _s3Service.GeneratePreSignedUrl("movie4lab3", key)).ToList();
+            var movieUrls = movieKeys.Select(key => _s3Service.GeneratePreSignedUrl("movie4lab3", key)).ToList();
 
             // Fetch movie metadata from DynamoDB 
             var moviesMetadata = await _dynamoDbHelper.GetMoviesAsync();
 
-            // Combine the S3 movie keys and metadata 
+            // Combine the S3 movie keys and metadata
             var movies = moviesMetadata.Select(movie => new Movie
             {
                 Title = movie.Title,
                 Genre = movie.Genre,
                 ReleaseDate = movie.ReleaseDate,
-                AverageRating = movie.AverageRating,
                 MovieID = movie.MovieID,
-                PreSignedUrl = _s3Service.GeneratePreSignedUrl("movie4lab3", movieKeys.FirstOrDefault(key => key.Contains(movie.MovieID)) ?? movie.MovieID)
- 
+                PreSignedUrl = movieUrls.FirstOrDefault(url => url.Contains(movie.MovieID)) // Map URL to each movie based on MovieID
             }).ToList();
-            
 
-            return View("~/Views/Home/Home.cshtml", movies);  // Pass the movies to the view
-
-        }
-       
-        // Delete Movie POST Action
-        [HttpPost]
-        public async Task<IActionResult> DeleteMovie(string movieId)
-        {
-            // Get the logged-in user email
-            var loggedInUserEmail = HttpContext.Session.GetString("Email");
-
-            if (string.IsNullOrEmpty(loggedInUserEmail))
-            {
-                return Unauthorized("User not logged in.");
-            }
-
-            // Fetch movie details by MovieID
-            var movie = await _dynamoDbHelper.GetMovieByIdAsync(movieId);
-
-            if (movie == null)
-            {
-                return NotFound("Movie not found.");
-            }
-
-            // Check if the logged-in user is authorized to delete
-            if (movie.UserID != loggedInUserEmail)
-            {
-                return Unauthorized("User not authorized to delete this movie.");
-            }
-
-            // Proceed with deletion if authorized
-
-            // Delete movie file from S3
-            var BucketName = "movie4lab3";  
-            var Key = $"{movie.MovieID}.mp4";
-            await _s3Service.DeleteMovieAsyncS3(BucketName, Key);
-
-            //Delete document from dynamodb using movieid
-            await _dynamoDbHelper.DeleteMovieAsyncDynamoDB(movieId);
-            return RedirectToAction("Home");
+            // Pass the list of Movie objects (with metadata and URLs) to the view
+            return View("~/Views/Home/Home.cshtml", movies);
         }
 
-        // Filter Movie based on rating/genre GET Action
-        [HttpGet]
         public async Task<IActionResult> FilterMovies(string genre, float? minRating)
         {
             List<Movie> movies;
 
-            if (!string.IsNullOrEmpty(genre))
+            if (!string.IsNullOrEmpty(genre) && minRating.HasValue)
             {
+                // Filter by both genre and rating
+                movies = (await _dynamoDbHelper.ListMoviesByGenre(genre))
+                            .Where(m => m.AverageRating >= minRating)
+                            .ToList();
+            }
+            else if (!string.IsNullOrEmpty(genre))
+            {
+                // Filter only by genre
                 movies = await _dynamoDbHelper.ListMoviesByGenre(genre);
             }
             else if (minRating.HasValue)
             {
+                // Filter only by rating
                 movies = await _dynamoDbHelper.ListMoviesByRating(minRating.Value);
             }
             else
             {
+                // No filter applied, return all movies
                 movies = await _dynamoDbHelper.GetMoviesAsync();
             }
 
-            return View("~/Views/Home/Home.cshtml", movies);
+            // Pass filtered movies list to the view
+            return View("Home", movies);
         }
 
-    }
 
+    }
 }
+

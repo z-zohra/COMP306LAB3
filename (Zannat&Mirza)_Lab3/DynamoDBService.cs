@@ -139,7 +139,7 @@ namespace _Zannat_Mirza__Lab3
                 MovieID = item["MovieID"].S,
                 Title = item["Title"].S,
                 Genre = item["Genre"].S,
-                UserID = item["UserID"].S,
+                UserID = item.ContainsKey("UserID") ? item["UserID"].S : null, // Handle missing UserID
                 AverageRating = float.Parse(item["AverageRating"].N),
                 ReleaseDate = DateTime.Parse(item["ReleaseDate"].S),
                 Directors = item["Directors"].L.Select(d => d.S).ToList(),

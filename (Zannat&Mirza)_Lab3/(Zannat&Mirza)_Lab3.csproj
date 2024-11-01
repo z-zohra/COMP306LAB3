@@ -5,12 +5,14 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>_Zannat_Mirza__Lab3</RootNamespace>
+    <UserSecretsId>6c1f5cbb-eb35-465d-9550-c946cc73f5b6</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.401.14" />
     <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.301" />
     <PackageReference Include="AWSSDK.S3" Version="3.7.405" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.10">
       <PrivateAssets>all</PrivateAssets>
