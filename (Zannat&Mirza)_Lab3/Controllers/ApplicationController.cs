@@ -107,82 +107,13 @@ namespace _Zannat_Mirza__Lab3.Controllers
                 Genre = movie.Genre,
                 ReleaseDate = movie.ReleaseDate,
                 MovieID = movie.MovieID,
+                AverageRating = movie.AverageRating,
                 PreSignedUrl = movieUrls.FirstOrDefault(url => url.Contains(movie.MovieID)) // Map URL to each movie based on MovieID
             }).ToList();
 
             // Pass the list of Movie objects (with metadata and URLs) to the view
             return View("~/Views/Home/Home.cshtml", movies);
         }
-
-        [HttpPost]
-public async Task<IActionResult> AddMovie(Movie model, IFormFile file)
-{
-    // Always retrieve the list of movies to pass to the view
-    List<Movie> movies = await _dynamoDbHelper.GetMoviesAsync();
-
-    // Validate the model state and the file
-    if (!ModelState.IsValid || file == null || file.Length == 0)
-    {
-        // Return the view with the list of movies and the current model state
-        return View("~/Views/Home/Home.cshtml", movies);
-    }
-
-    try
-    {
-        // Generate a unique MovieID
-        model.MovieID = Guid.NewGuid().ToString();
-
-        // Set the S3 key based on the MovieID for uniqueness
-        var s3Key = $"{model.MovieID}.mp4"; // Using MovieID for uniqueness
-
-        // Validate file type
-        var validExtensions = new[] { ".mp4", ".mkv", ".avi" };
-        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-        if (!validExtensions.Contains(extension))
-        {
-            ModelState.AddModelError("file", "Invalid file type. Please upload a video file.");
-            return View("~/Views/Home/Home.cshtml", movies);
-        }
-
-        // Save the file to a temporary path
-        var tempFilePath = Path.Combine(Path.GetTempPath(), s3Key);
-        using (var stream = new FileStream(tempFilePath, FileMode.Create))
-        {
-            await file.CopyToAsync(stream);
-        }
-
-        // Upload the file to S3 and get the pre-signed URL
-        await _s3Service.UploadMovieAsyncS3("movie4lab3", s3Key, tempFilePath);
-        model.PreSignedUrl = _s3Service.GeneratePreSignedUrl("movie4lab3", s3Key);
-
-        // Save the movie metadata to DynamoDB
-        await _dynamoDbHelper.AddMovie(model);
-
-        // Redirect to the Home action
-        return RedirectToAction("Home");
-    }
-    catch (Exception ex)
-    {
-        // Handle any exceptions and log the error
-        ModelState.AddModelError("", "An error occurred while uploading the movie: " + ex.Message);
-        return View("~/Views/Home/Home.cshtml", movies);
-    }
-    finally
-    {
-        // Clean up the temporary file
-        var tempFilePath = Path.Combine(Path.GetTempPath(), $"{model.MovieID}.mp4");
-        if (System.IO.File.Exists(tempFilePath))
-        {
-            System.IO.File.Delete(tempFilePath);
-        }
-    }
-}
-
-
-
-
-
-
         // Filter Movie 
         public async Task<IActionResult> FilterMovies(string genre, float? minRating)
         {
@@ -220,6 +151,9 @@ public async Task<IActionResult> AddMovie(Movie model, IFormFile file)
 
             return View("~/Views/Home/Home.cshtml", movies);
         }
+
+
+
 
     }
 }

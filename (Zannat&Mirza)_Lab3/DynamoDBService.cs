@@ -41,10 +41,9 @@ namespace _Zannat_Mirza__Lab3
             return movies;
         }
 
+        // Method to insert data into DynamoDB table
         public async Task AddMovie(Movie movie)
         {
-            if (movie == null) throw new ArgumentNullException(nameof(movie));
-
             var request = new PutItemRequest
             {
                 TableName = "MovieDB",
@@ -57,48 +56,30 @@ namespace _Zannat_Mirza__Lab3
             { "AverageRating", new AttributeValue { N = movie.AverageRating.ToString() } },
             { "RatingCount", new AttributeValue { N = movie.RatingCount.ToString() } },
             { "ReleaseDate", new AttributeValue { S = movie.ReleaseDate?.ToString("yyyy-MM-dd") } },
-            { "PreSignedUrl", new AttributeValue { S = movie.PreSignedUrl } },
-            { "Directors", new AttributeValue { L = movie.Directors?.Select(d => new AttributeValue { S = d }).ToList() ?? new List<AttributeValue>() } },
-            { "Metadata", new AttributeValue
-                {
-                    M = new Dictionary<string, AttributeValue>
-                    {
-                        { "Country", new AttributeValue { S = movie.Metadata.Country } },
-                        { "Duration", new AttributeValue { N = movie.Metadata.Duration.ToString() } },
-                        { "Language", new AttributeValue { S = movie.Metadata.Language } }
+            //{ "PreSignedUrl", new AttributeValue { S = movie.PreSignedUrl } },
+            { "Directors", new AttributeValue { L = movie.Directors.Select(d => new AttributeValue { S = d }).ToList() } },
+                { "Metadata", new AttributeValue {
+                M = new Dictionary<string, AttributeValue> {
+                    { "Country", new AttributeValue { S = movie.Metadata.Country } },
+                    { "Duration", new AttributeValue { N = movie.Metadata.Duration.ToString() } },
+                    { "Language", new AttributeValue { S = movie.Metadata.Language } }
+                }
+            } },
+            { "Comments", new AttributeValue { M = movie.Comments.ToDictionary(
+                kvp => kvp.Key,
+                kvp => new AttributeValue {
+                    M = new Dictionary<string, AttributeValue> {
+                        { "Comment", new AttributeValue { S = kvp.Value.Comments } },
+                        { "Rating", new AttributeValue { N = kvp.Value.Rating.ToString() } },
+                        { "Timestamp", new AttributeValue { S = kvp.Value.Timestamp.ToString("o") } }
                     }
-                }
-            },
-            { "Comments", new AttributeValue
-                {
-                    M = movie.Comments.ToDictionary(
-                        kvp => kvp.Key,
-                        kvp => new AttributeValue
-                        {
-                            M = new Dictionary<string, AttributeValue>
-                            {
-                                { "Comment", new AttributeValue { S = kvp.Value.Comments } },
-                                { "Rating", new AttributeValue { N = kvp.Value.Rating.ToString() } },
-                                { "Timestamp", new AttributeValue { S = kvp.Value.Timestamp.ToString("o") } }
-                            }
-                        }
-                    )
-                }
-            }
+                })
+            }}
         }
             };
 
-            try
-            {
-                await _dynamoDbClient.PutItemAsync(request);
-            }
-            catch (Exception ex)
-            {
-                // Log or handle the exception
-                throw new Exception("Failed to add movie to the database", ex);
-            }
+            await _dynamoDbClient.PutItemAsync(request);
         }
-
 
         //Delete Movie function for DynamoDB
         public async Task DeleteMovieAsyncDynamoDB(string movieId)
@@ -214,5 +195,10 @@ namespace _Zannat_Mirza__Lab3
 
             return movie;
         }
+
+
+
+
+
     }
 }
